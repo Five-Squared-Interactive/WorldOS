@@ -1,0 +1,19 @@
+{
+    "server-name": "Unset",
+    "bus-port": 5525,
+    "startup-apps": [
+        {
+            "name": "Test",
+            "command": "node",
+            "args": [ "./examplestartupapp.js", 5525 ]
+        }
+    ],
+    "message-triggered-apps": [
+        {
+            "name": "Message Test",
+            "topic": "vos/app/messagetest",
+            "command": "notepad.exe",
+            "default-args": [  ]
+        }
+    ]
+}
