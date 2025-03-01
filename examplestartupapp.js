@@ -11,7 +11,7 @@ const mqtt = require("mqtt");
 ConnectToMQTT = function(port) {
     Log("[ExampleStartupApp] Connecting to MQTT bus...");
     this.client = mqtt.connect(`mqtt://localhost:${port}`);
-    this.client.on('connect', function()  {
+    this.client.on('connect', function() {
         client.subscribe("vos/app/#", function(err) {
             if (err) {
                 Log("[ExampleStartupApp] Error connecting to MQTT bus.");

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2024 Five Squared Interactive. All rights reserved.
+// Copyright (c) 2019-2025 Five Squared Interactive. All rights reserved.
 
 const { argv } = require("process");
 const { spawn } = require("child_process");
@@ -57,6 +57,7 @@ GetConfiguration = function(configFile) {
         if (startupApp["args"] === null) {
             startupApp["args"] = [];
         }
+        startupApp["args"].push(config["bus-port"]);
     });
 
     config["message-triggered-apps"].forEach((msgTriggeredApp) => {
@@ -75,6 +76,7 @@ GetConfiguration = function(configFile) {
         if (msgTriggeredApp["default-args"] === null) {
             msgTriggeredApp["default-args"] = [];
         }
+        msgTriggeredApp["default-args"].push(config["bus-port"]);
     });
 
     return config;
