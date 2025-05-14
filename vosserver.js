@@ -109,6 +109,25 @@ RegisterMessageTriggeredApp = function(appName, topic, appCommand, args) {
 RunStartupApp = function(appName, appCommand, args) {
     Log("[VOSServer] Starting app " + appName + "...");
     appProcess = spawn(appCommand, args, { detached: true });
+    appProcess.on("error", (err) => {
+        Log("[" + appName + "] " + err);
+    });
+      
+    appProcess.on('exit', (code, signal) => {
+        if (code !== 0) {
+            Log("[" + appName + "] Exited with code " + code + " and signal " + signal  + ".");
+        } else {
+            Log("[" + appName + "] Exited with code 0.");
+        }
+    });
+      
+    appProcess.stdout.on('data', (data) => {
+        Log("[" + appName + "] " + data);
+    });
+      
+    appProcess.stderr.on('data', (data) => {
+        Log("[" + appName + "] " + data);
+    });
     this.startupApps.push(appProcess);
     Log("[VOSServer] App " + appName + " started.");
 }
