@@ -2,13 +2,13 @@
   "author": {
     "name": "Dylan Baker"
   },
-  "name": "@fivesquaredinteractive/vos",
-  "description": "Virtual reality Operating System",
+  "name": "@fivesquaredinteractive/wos",
+  "description": "World Operating System",
   "keywords": [
-    "VOS"
+    "WOS"
   ],
   "version": "1.0.0",
-  "main": "vossynchronizationservice.js",
+  "main": "wossynchronizationservice.js",
   "license": "MIT",
   "dependencies": {
     "mqtt": "latest",
@@ -18,6 +18,6 @@
     "node": ">=6.0"
   },
   "bin": {
-    "vos-synchronization": "./vossynchronizationservice.js"
+    "wos-synchronization": "./wossynchronizationservice.js"
   }
 }

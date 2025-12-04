@@ -12,28 +12,28 @@ module.exports = function() {
     this.Log = function(text) {
         console.log(text);
         if (process.platform == "win32") {
-            fs.appendFile(".\\vos.log", text + "\n", function(err){
+            fs.appendFile(".\\wos.log", text + "\n", function(err){
                 
             });
         } else {
-            fs.appendFile("./vos.log", text + "\n", function(err){
+            fs.appendFile("./wos.log", text + "\n", function(err){
     
             });
         }
     }
 
     /**
-     * @function ConnectToVOS Connect to the VOS MQTT bus.
+     * @function ConnectToWOS Connect to the WOS MQTT bus.
      * @param {*} appName Name of the application.
      * @param {*} onConnect Callback function called when connected.
      * @param {*} mqttHost Optional MQTT host address. Defaults to localhost.
      */
-    this.ConnectToVOS = function(appName, onConnect, mqttHost) {
-        vosPort = argv[argv.length - 1];
+    this.ConnectToWOS = function(appName, onConnect, mqttHost) {
+        wosPort = argv[argv.length - 1];
         // Use provided host or default to localhost
         var host = mqttHost || "localhost";
-        this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + vosPort + "...");
-        this.client = mqtt.connect(`mqtt://${host}:${vosPort}`);
+        this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + wosPort + "...");
+        this.client = mqtt.connect(`mqtt://${host}:${wosPort}`);
         context = this;
         this.client.on('connect', function() {
             context.Log("[" + appName + "] Connected to MQTT bus.");
@@ -45,9 +45,9 @@ module.exports = function() {
         });
     }
 
-    this.SubscribeToVOS = function(appName, subscriptionTopic, onMessage) {
+    this.SubscribeToWOS = function(appName, subscriptionTopic, onMessage) {
         if (this.client == null) {
-            this.Log("[" + appName + "] VOS not connected.");
+            this.Log("[" + appName + "] WOS not connected.");
             return;
         }
 
@@ -65,9 +65,9 @@ module.exports = function() {
         });
     }
 
-    this.PublishOnVOS = function(topic, message) {
+    this.PublishOnWOS = function(topic, message) {
         if (this.client == null) {
-            this.Log("[" + appName + "] VOS not connected.");
+            this.Log("[" + appName + "] WOS not connected.");
             return;
         }
 

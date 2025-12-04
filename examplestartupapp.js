@@ -12,7 +12,7 @@ ConnectToMQTT = function(port) {
     Log("[ExampleStartupApp] Connecting to MQTT bus...");
     this.client = mqtt.connect(`mqtt://localhost:${port}`);
     this.client.on('connect', function() {
-        client.subscribe("vos/app/#", function(err) {
+        client.subscribe("wos/app/#", function(err) {
             if (err) {
                 Log("[ExampleStartupApp] Error connecting to MQTT bus.");
             } else {
@@ -32,7 +32,7 @@ ConnectToMQTT = function(port) {
 SendMessageToSelf = function() {
     if (this.client != null) {
         Log("[ExampleStartupApp] Sending message to self...");
-        this.client.publish("vos/app/test", "test-message");
+        this.client.publish("wos/app/test", "test-message");
     }
 }
 

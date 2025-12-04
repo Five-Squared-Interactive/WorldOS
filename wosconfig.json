@@ -11,7 +11,7 @@
     "message-triggered-apps": [
         {
             "name": "Message Test",
-            "topic": "vos/app/messagetest",
+            "topic": "wos/app/messagetest",
             "command": "notepad.exe",
             "default-args": [  ]
         }

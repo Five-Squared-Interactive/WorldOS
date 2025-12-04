@@ -90,14 +90,14 @@ GetConfiguration = function(configFile) {
  * @param {*} args Array of arguments to the app.
  */
 RegisterMessageTriggeredApp = function(appName, topic, appCommand, args) {
-    Log("[VOSServer] Registering app " + appName + "...");
+    Log("[WOSServer] Registering app " + appName + "...");
     this.messageTriggeredApps.push({
         "name": appName,
         "topic": topic,
         "command": appCommand,
         "args": args
     });
-    Log("[VOSServer] App " + appName + " registered.");
+    Log("[WOSServer] App " + appName + " registered.");
 }
 
 /**
@@ -107,7 +107,7 @@ RegisterMessageTriggeredApp = function(appName, topic, appCommand, args) {
  * @param {*} args Array of arguments to the app.
  */
 RunStartupApp = function(appName, appCommand, args) {
-    Log("[VOSServer] Starting app " + appName + "...");
+    Log("[WOSServer] Starting app " + appName + "...");
     appProcess = spawn(appCommand, args, { detached: true });
     appProcess.on("error", (err) => {
         Log("[" + appName + "] " + err);
@@ -129,7 +129,7 @@ RunStartupApp = function(appName, appCommand, args) {
         Log("[" + appName + "] " + data);
     });
     this.startupApps.push(appProcess);
-    Log("[VOSServer] App " + appName + " started.");
+    Log("[WOSServer] App " + appName + " started.");
 }
 
 /**
@@ -146,8 +146,8 @@ TerminateStartupApps = function() {
  * @param {*} port Port.
  */
 RunMQTT = function(port, caFile = null, privateKeyFile = null, certFile = null) {
-    Log("[VOSBus] Version " + versionString);
-    Log("[VOSBus] Starting MQTT bus...");
+    Log("[WOSBus] Version " + versionString);
+    Log("[WOSBus] Starting MQTT bus...");
     var config = `listener ${port}\nprotocol mqtt`;
     if (caFile != null && privateKeyFile != null && certFile != null) {
         config = `${config}\ncafile ${caFile}\ncertfile ${certFile}\nkeyfile ${privateKeyFile}`;
@@ -157,21 +157,21 @@ RunMQTT = function(port, caFile = null, privateKeyFile = null, certFile = null) 
     if (process.platform == "win32") {
         this.mosquittoProcess = spawn(path.join(__dirname, "Mosquitto\\mosquitto.exe"),
             ["-c", CONFIGFILENAME], {detached: true});
-        Log("[VOSBus] MQTT bus started.");
+        Log("[WOSBus] MQTT bus started.");
         ConnectToMQTT(port);
     } else {
         this.mosquittoProcess = spawn("mosquitto", ["-c", CONFIGFILENAME], {detached: true});
-        Log("[VOSBus] MQTT bus started.");
+        Log("[WOSBus] MQTT bus started.");
         ConnectToMQTT(port);
     }
     this.mosquittoProcess.stdout.on('data', (data) => {
-        Log(`[VOSBus] ${data}`);
+        Log(`[WOSBus] ${data}`);
     });
     this.mosquittoProcess.stderr.on('data', (data) => {
-        Log(`[VOSBus] ${data}`);
+        Log(`[WOSBus] ${data}`);
     });
     this.mosquittoProcess.on('close', (code) => {
-        Log(`[VOSBus] MQTT server exited ${code}`);
+        Log(`[WOSBus] MQTT server exited ${code}`);
     });
 }
 
@@ -179,17 +179,17 @@ RunMQTT = function(port, caFile = null, privateKeyFile = null, certFile = null) 
  * @function StopMQTT Stop MQTT process.
  */
 StopMQTT = function() {
-    Log("[VOSBus] Stopping MQTT bus...");
+    Log("[WOSBus] Stopping MQTT bus...");
     if (this.mosquittoProcess != null)
     {
         process.kill(this.mosquittoProcess.pid);
         if (fs.existsSync(CONFIGFILENAME)) {
             fs.rmSync(CONFIGFILENAME);
         }
-        Log("[VOSBus] MQTT bus stopped.");
+        Log("[WOSBus] MQTT bus stopped.");
     }
     else {
-        Log("[VOSBus] Error stopping MQTT bus.");
+        Log("[WOSBus] Error stopping MQTT bus.");
     }
 }
 
@@ -198,14 +198,14 @@ StopMQTT = function() {
      * @param {*} port Port.
      */
 ConnectToMQTT = function(port) {
-    Log("[VOSServer] Connecting to MQTT bus...");
+    Log("[WOSServer] Connecting to MQTT bus...");
     client = mqtt.connect(`mqtt://localhost:${port}`);
     client.on('connect', function()  {
-        client.subscribe("vos/app/#", function(err) {
+        client.subscribe("wos/app/#", function(err) {
             if (err) {
-                Log("[VOSServer] Error connecting to MQTT bus.");
+                Log("[WOSServer] Error connecting to MQTT bus.");
             } else {
-                Log("[VOSServer] Connected to MQTT bus.");
+                Log("[WOSServer] Connected to MQTT bus.");
             }
         });
     });
@@ -228,7 +228,7 @@ ProcessMessage = function(topic, message) {
             && messageTriggeredApp["default-args"] != null) {
             commandArgs = messageTriggeredApp["default-args"].slice();
             commandArgs.push("topic=" + formattedTopic);
-            commandArgs.push("vosmessage=" + message);
+            commandArgs.push("wosmessage=" + message);
             spawn(messageTriggeredApp["command"], commandArgs, { detached: true });
         }
     });
@@ -241,11 +241,11 @@ ProcessMessage = function(topic, message) {
 Log = function(text) {
     console.log(text);
     if (process.platform == "win32") {
-        fs.appendFile(".\\vos.log", text + "\n", function(err){
+        fs.appendFile(".\\wos.log", text + "\n", function(err){
             
         });
     } else {
-        fs.appendFile("./vos.log", text + "\n", function(err){
+        fs.appendFile("./wos.log", text + "\n", function(err){
 
         });
     }
@@ -270,25 +270,25 @@ process.on('SIGINT', function() {
 });
 
 Initialize();
-Log("[VOSServer] Getting configuration...");
+Log("[WOSServer] Getting configuration...");
 var config = GetConfiguration(argv[2]);
-Log("[VOSServer] Starting server " + config["server-name"]);
+Log("[WOSServer] Starting server " + config["server-name"]);
 RunMQTT(config["bus-port"]);
-Log("[VOSServer] Registering message triggered apps...");
+Log("[WOSServer] Registering message triggered apps...");
 config["message-triggered-apps"].forEach((messageTriggeredApp) => {
     if (messageTriggeredApp["topic"] === null || messageTriggeredApp["topic"] === "" ||
         messageTriggeredApp["command"] === null || messageTriggeredApp["command"] == "") {
-        Log("[VOSServer] Invalid message triggered app " + messageTriggeredApp["name"] + ". Skipping...");
+        Log("[WOSServer] Invalid message triggered app " + messageTriggeredApp["name"] + ". Skipping...");
     }
     else {
         RegisterMessageTriggeredApp(messageTriggeredApp["name"], messageTriggeredApp["topic"],
             messageTriggeredApp["command"], messageTriggeredApp["args"]);
     }
 });
-Log("[VOSServer] Message triggered apps registered.");
+Log("[WOSServer] Message triggered apps registered.");
 config["startup-apps"].forEach((startupApp) => {
     if (startupApp["command"] === null || startupApp["command"] === "") {
-        Log("[VOSServer] Invalid startup app " + startupApp["name"] + ". Skipping...");
+        Log("[WOSServer] Invalid startup app " + startupApp["name"] + ". Skipping...");
     }
     else {
         RunStartupApp(startupApp["name"], startupApp["command"], startupApp["args"]);
