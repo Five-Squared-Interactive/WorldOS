@@ -22,10 +22,7 @@ app.ConnectToVOS("MyApp", onConnect, "mqtt.example.com");
 
 **Configuration:**
 - **Parameter**: Pass the MQTT host as the third parameter to `ConnectToVOS()`
-- **Environment Variable**: Set `VOS_MQTT_HOST` to specify the default MQTT host
 - **Default**: Connects to `localhost` if no host is specified
-
-Priority order: Explicit parameter > Environment variable > localhost
 
 ### wosapp.py (Python)
 
@@ -51,11 +48,8 @@ if not success:
 
 **Configuration:**
 - **Parameter**: Pass the MQTT host as the `mqttHost` parameter to `ConnectToWOS()`
-- **Environment Variable**: Set `WOS_MQTT_HOST` to specify the default MQTT host
 - **Default**: Connects to `localhost` if no host is specified
 - **Return Value**: Returns `True` if connection was initiated successfully, `False` otherwise
-
-Priority order: Explicit parameter > Environment variable > localhost
 
 ### Error Handling
 

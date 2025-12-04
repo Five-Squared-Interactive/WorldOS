@@ -1,5 +1,4 @@
 import logging
-import os
 import paho.mqtt.client as mqtt
 
 class WOSApp:
@@ -25,13 +24,12 @@ class WOSApp:
             wosPort: Port number for the MQTT connection.
             onConnect: Callback function called when connected.
             mqttHost: Optional MQTT host address. Defaults to localhost.
-                      Can also be set via WOS_MQTT_HOST environment variable.
         
         Returns:
             bool: True if connection was initiated successfully, False otherwise.
         """
-        # Priority: 1. Explicit parameter, 2. Environment variable, 3. Default to localhost
-        host = mqttHost or os.environ.get("WOS_MQTT_HOST", "localhost")
+        # Use provided host or default to localhost
+        host = mqttHost or "localhost"
         self.Log(f"[{appName}] Connecting to MQTT bus at {host}:{wosPort}...")
         self.client = mqtt.Client()
         def _on_connect(client, userdata, flags, rc):

@@ -27,12 +27,11 @@ module.exports = function() {
      * @param {*} appName Name of the application.
      * @param {*} onConnect Callback function called when connected.
      * @param {*} mqttHost Optional MQTT host address. Defaults to localhost.
-     *                     Can also be set via VOS_MQTT_HOST environment variable.
      */
     this.ConnectToVOS = function(appName, onConnect, mqttHost) {
         vosPort = argv[argv.length - 1];
-        // Priority: 1. Explicit parameter, 2. Environment variable, 3. Default to localhost
-        var host = mqttHost || process.env.VOS_MQTT_HOST || "localhost";
+        // Use provided host or default to localhost
+        var host = mqttHost || "localhost";
         this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + vosPort + "...");
         this.client = mqtt.connect(`mqtt://${host}:${vosPort}`);
         context = this;
