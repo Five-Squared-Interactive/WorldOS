@@ -34,19 +34,28 @@ module.exports = function() {
         // Priority: 1. Explicit parameter, 2. Environment variable, 3. Default to localhost
         var host = mqttHost || process.env.VOS_MQTT_HOST || "localhost";
         this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + vosPort + "...");
-        try {
-            this.client = mqtt.connect(`mqtt://${host}:${vosPort}`);
-        } catch (err) {
-            this.Log("[" + appName + "] Error creating MQTT connection: " + err.message + ". Falling back to localhost.");
-            this.client = mqtt.connect(`mqtt://localhost:${vosPort}`);
-        }
+        this.client = mqtt.connect(`mqtt://${host}:${vosPort}`);
         context = this;
+        var initialHost = host;
         this.client.on('connect', function() {
             context.Log("[" + appName + "] Connected to MQTT bus.");
             onConnect();
         });
         this.client.on('error', function(err) {
             context.Log("[" + appName + "] MQTT connection error: " + err.message);
+            // If not already on localhost, try falling back to localhost
+            if (initialHost !== "localhost") {
+                context.Log("[" + appName + "] Falling back to localhost...");
+                context.client = mqtt.connect(`mqtt://localhost:${vosPort}`);
+                initialHost = "localhost";
+                context.client.on('connect', function() {
+                    context.Log("[" + appName + "] Connected to MQTT bus (fallback).");
+                    onConnect();
+                });
+                context.client.on('error', function(err) {
+                    context.Log("[" + appName + "] MQTT fallback connection error: " + err.message);
+                });
+            }
         });
     }
 
