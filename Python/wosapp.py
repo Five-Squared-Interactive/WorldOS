@@ -15,16 +15,30 @@ class WOSApp:
         print(text)
         self.logger.info(text)
 
-    def ConnectToWOS(self, appName, wosPort, onConnect):
-        self.Log(f"[{appName}] Connecting to MQTT bus...")
+    def ConnectToWOS(self, appName, wosPort, onConnect, mqttHost=None):
+        """
+        Connect to the WOS MQTT bus.
+
+        Args:
+            appName: Name of the application.
+            wosPort: Port number for the MQTT connection.
+            onConnect: Callback function called when connected.
+            mqttHost: Optional MQTT host address. Defaults to localhost.
+        
+        Raises:
+            Exception: If connection to the MQTT broker fails.
+        """
+        # Use provided host or default to localhost
+        host = mqttHost or "localhost"
+        self.Log(f"[{appName}] Connecting to MQTT bus at {host}:{wosPort}...")
         self.client = mqtt.Client()
         def _on_connect(client, userdata, flags, rc):
             self.Log(f"[{appName}] Connected to MQTT bus.")
             onConnect()
         self.client.on_connect = _on_connect
 
-        print(f"Connecting to MQTT on port {wosPort}...")
-        self.client.connect("localhost", int(wosPort), 60)
+        print(f"Connecting to MQTT at {host}:{wosPort}...")
+        self.client.connect(host, int(wosPort), 60)
 
     def SubscribeToWOS(self, appName, subscriptionTopic, onMessage):
         if self.client is None:

@@ -22,14 +22,26 @@ module.exports = function() {
         }
     }
 
-    this.ConnectToVOS = function(appName, onConnect) {
+    /**
+     * @function ConnectToVOS Connect to the VOS MQTT bus.
+     * @param {*} appName Name of the application.
+     * @param {*} onConnect Callback function called when connected.
+     * @param {*} mqttHost Optional MQTT host address. Defaults to localhost.
+     */
+    this.ConnectToVOS = function(appName, onConnect, mqttHost) {
         vosPort = argv[argv.length - 1];
-        this.Log("[" + appName + "] Connecting to MQTT bus...");
-        this.client = mqtt.connect(`mqtt://localhost:${vosPort}`);
+        // Use provided host or default to localhost
+        var host = mqttHost || "localhost";
+        this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + vosPort + "...");
+        this.client = mqtt.connect(`mqtt://${host}:${vosPort}`);
         context = this;
         this.client.on('connect', function() {
             context.Log("[" + appName + "] Connected to MQTT bus.");
             onConnect();
+        });
+        this.client.on('error', function(err) {
+            context.Log("[" + appName + "] MQTT connection error: " + err.message);
+            throw err;
         });
     }
 
