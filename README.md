@@ -36,23 +36,16 @@ from wosapp import WOSApp
 app = WOSApp()
 
 # Connect to localhost (default)
-success = app.ConnectToWOS("MyApp", 1883, on_connect)
+app.ConnectToWOS("MyApp", 1883, on_connect)
 
 # Connect to a remote MQTT server
-success = app.ConnectToWOS("MyApp", 1883, on_connect, mqttHost="mqtt.example.com")
-
-# Check if connection was successful
-if not success:
-    print("Failed to connect to MQTT broker")
+app.ConnectToWOS("MyApp", 1883, on_connect, mqttHost="mqtt.example.com")
 ```
 
 **Configuration:**
 - **Parameter**: Pass the MQTT host as the `mqttHost` parameter to `ConnectToWOS()`
 - **Default**: Connects to `localhost` if no host is specified
-- **Return Value**: Returns `True` if connection was initiated successfully, `False` otherwise
 
 ### Error Handling
 
-Both implementations include fallback behavior:
-- If connection to the specified remote host fails, the apps will automatically attempt to fall back to `localhost`
-- Connection errors are logged for debugging purposes
+Connection errors will be raised as exceptions and should be handled by the calling code. Errors are also logged for debugging purposes.

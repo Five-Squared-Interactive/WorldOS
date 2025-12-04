@@ -25,8 +25,8 @@ class WOSApp:
             onConnect: Callback function called when connected.
             mqttHost: Optional MQTT host address. Defaults to localhost.
         
-        Returns:
-            bool: True if connection was initiated successfully, False otherwise.
+        Raises:
+            Exception: If connection to the MQTT broker fails.
         """
         # Use provided host or default to localhost
         host = mqttHost or "localhost"
@@ -37,23 +37,8 @@ class WOSApp:
             onConnect()
         self.client.on_connect = _on_connect
 
-        try:
-            print(f"Connecting to MQTT at {host}:{wosPort}...")
-            self.client.connect(host, int(wosPort), 60)
-            return True
-        except Exception as e:
-            self.Log(f"[{appName}] Error connecting to MQTT at {host}: {e}. Falling back to localhost.")
-            if host != "localhost":
-                try:
-                    self.client.connect("localhost", int(wosPort), 60)
-                    return True
-                except Exception as fallback_err:
-                    self.Log(f"[{appName}] Fallback to localhost also failed: {fallback_err}")
-                    self.client = None
-                    return False
-            else:
-                self.client = None
-                return False
+        print(f"Connecting to MQTT at {host}:{wosPort}...")
+        self.client.connect(host, int(wosPort), 60)
 
     def SubscribeToWOS(self, appName, subscriptionTopic, onMessage):
         if self.client is None:
