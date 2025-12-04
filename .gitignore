@@ -128,3 +128,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Lock files (optional - remove if you want to track them)
+package-lock.json
