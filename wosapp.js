@@ -32,31 +32,31 @@ module.exports = function() {
         wosPort = argv[argv.length - 1];
         // Use provided host or default to localhost
         var host = mqttHost || "localhost";
-        this.Log("[" + appName + "] Connecting to MQTT bus at " + host + ":" + wosPort + "...");
+        this.Log("Connecting to MQTT bus at " + host + ":" + wosPort + "...");
         this.client = mqtt.connect(`mqtt://${host}:${wosPort}`);
         context = this;
         this.client.on('connect', function() {
-            context.Log("[" + appName + "] Connected to MQTT bus.");
+            context.Log("Connected to MQTT bus.");
             onConnect();
         });
         this.client.on('error', function(err) {
-            context.Log("[" + appName + "] MQTT connection error: " + err.message);
+            context.Log("MQTT connection error: " + err.message);
             throw err;
         });
     }
 
     this.SubscribeToWOS = function(appName, subscriptionTopic, onMessage) {
         if (this.client == null) {
-            this.Log("[" + appName + "] WOS not connected.");
+            this.Log("WOS not connected.");
             return;
         }
 
         context = this;
         this.client.subscribe(subscriptionTopic, function(err) {
             if (err) {
-                context.Log("[" + appName + "] Error subscribing to " + subscriptionTopic + ".");
+                context.Log("Error subscribing to " + subscriptionTopic + ".");
             } else {
-                context.Log("[" + appName + "] Subscribed to " + subscriptionTopic + ".");
+                context.Log("Subscribed to " + subscriptionTopic + ".");
             }
         });
     
@@ -67,7 +67,7 @@ module.exports = function() {
 
     this.PublishOnWOS = function(topic, message) {
         if (this.client == null) {
-            this.Log("[" + appName + "] WOS not connected.");
+            this.Log("WOS not connected.");
             return;
         }
 

@@ -142,13 +142,81 @@ TerminateStartupApps = function() {
 }
 
 /**
+ * @function GracefulShutdown Graceful shutdown - notify apps then terminate.
+ * @param {*} callback Callback function to call after shutdown delay.
+ */
+GracefulShutdown = function(callback) {
+    Log("[WOSServer] Initiating graceful shutdown...");
+    
+    // Publish shutdown message to notify all apps
+    if (client && client.connected) {
+        let shutdownReceived = false;
+        const maxWaitTime = 15000; // Maximum 15 seconds to wait
+        
+        // Subscribe to container manager events to know when it's done
+        client.subscribe("wos/containermanager/event", function(err) {
+            if (err) {
+                Log("[WOSServer] Warning: Could not subscribe to container manager events");
+            }
+        });
+        
+        // Listen for shutdown acknowledgment
+        const shutdownHandler = function(topic, message) {
+            if (topic === "wos/containermanager/event") {
+                try {
+                    const event = JSON.parse(message.toString());
+                    if (event.type === "shutdown") {
+                        Log("[WOSServer] Container Manager reported shutdown complete: " + 
+                            event.data.stopped + " stopped, " + event.data.failed + " failed");
+                        shutdownReceived = true;
+                    }
+                } catch (e) {
+                    // Ignore parse errors
+                }
+            }
+        };
+        client.on('message', shutdownHandler);
+        
+        client.publish("wos/system/shutdown", JSON.stringify({
+            timestamp: new Date().toISOString(),
+            reason: "server_shutdown"
+        }));
+        Log("[WOSServer] Shutdown notification sent. Waiting for apps to clean up...");
+        
+        // Poll for shutdown acknowledgment, with timeout
+        const startTime = Date.now();
+        const checkShutdown = function() {
+            if (shutdownReceived) {
+                Log("[WOSServer] All containers stopped. Terminating apps...");
+                client.removeListener('message', shutdownHandler);
+                TerminateStartupApps();
+                if (callback) callback();
+            } else if (Date.now() - startTime >= maxWaitTime) {
+                Log("[WOSServer] Timeout waiting for container shutdown. Terminating apps...");
+                client.removeListener('message', shutdownHandler);
+                TerminateStartupApps();
+                if (callback) callback();
+            } else {
+                setTimeout(checkShutdown, 500);
+            }
+        };
+        setTimeout(checkShutdown, 500);
+    } else {
+        // MQTT not connected, just terminate immediately
+        TerminateStartupApps();
+        if (callback) callback();
+    }
+}
+
+/**
  * @function RunMQTT Run MQTT process.
  * @param {*} port Port.
  */
 RunMQTT = function(port, caFile = null, privateKeyFile = null, certFile = null) {
     Log("[WOSBus] Version " + versionString);
     Log("[WOSBus] Starting MQTT bus...");
-    var config = `listener ${port}\nprotocol mqtt`;
+    // Bind to 0.0.0.0 to allow connections from Docker containers via the bridge network
+    var config = `listener ${port} 0.0.0.0\nprotocol mqtt`;
     if (caFile != null && privateKeyFile != null && certFile != null) {
         config = `${config}\ncafile ${caFile}\ncertfile ${certFile}\nkeyfile ${privateKeyFile}`;
     }
@@ -258,15 +326,16 @@ if (process.platform === "win32") {
     });
   
     rl.on("SIGINT", function () {
-      TerminateStartupApps();
+      // Don't kill apps here - let GracefulShutdown handle it
       process.emit("SIGINT");
     });
 }
 
 process.on('SIGINT', function() {
-    TerminateStartupApps();
-    StopMQTT();
-    process.exit();
+    GracefulShutdown(() => {
+        StopMQTT();
+        process.exit();
+    });
 });
 
 Initialize();
