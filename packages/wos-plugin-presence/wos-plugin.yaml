@@ -1,0 +1,107 @@
+# WorldOS Plugin Manifest - Reference Implementation
+# This manifest demonstrates all available features
+
+# Basic plugin metadata
+name: presence
+version: 1.0.0
+description: Tracks online user presence in WorldOS servers
+author: WorldOS Team
+
+# Runtime configuration
+runtime: node
+entrypoint: ./dist/index.js
+
+# Topics this plugin subscribes to
+mqtt:
+  subscriptions:
+    - wos/sync/session/+/joined
+    - wos/sync/session/+/left
+    - wos/presence/request/+
+  publications:
+    - wos/presence/user/joined
+    - wos/presence/user/left
+    - wos/presence/response/+
+    - wos/presence/list
+
+# Plugin configuration schema
+config:
+  schema:
+    type: object
+    properties:
+      heartbeatInterval:
+        type: number
+        description: Interval in seconds between heartbeat checks
+        default: 30
+        minimum: 5
+        maximum: 300
+      maxInactivityTime:
+        type: number
+        description: Time in seconds before marking user as away
+        default: 300
+        minimum: 60
+      trackWorldPresence:
+        type: boolean
+        description: Track which world each user is in
+        default: true
+      enableNotifications:
+        type: boolean
+        description: Send notifications on join/leave events
+        default: true
+    required: []
+
+# CLI commands provided by this plugin
+commands:
+  - name: list
+    description: List all online users
+    usage: wos presence list [--world <id>] [--json]
+    options:
+      - name: world
+        shorthand: w
+        description: Filter by world ID
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: kick
+    description: Kick a user from the server
+    usage: wos presence kick <userId> [--reason <reason>]
+    args:
+      - name: userId
+        required: true
+        description: ID of the user to kick
+    options:
+      - name: reason
+        shorthand: r
+        description: Reason for the kick
+        type: string
+  - name: count
+    description: Get online user count
+    usage: wos presence count [--world <id>]
+    options:
+      - name: world
+        shorthand: w
+        description: Filter by world ID
+        type: string
+
+# Admin panel configuration
+admin:
+  panel:
+    title: User Presence
+    icon: users
+    route: /presence
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Online Users
+      component: ./admin/card.js
+      width: 1
+
+# Dependencies (other plugins required)
+dependencies: []
+
+# Lifecycle hooks
+hooks:
+  onInstall: true
+  onEnable: true
+  onDisable: true
+  onUninstall: true

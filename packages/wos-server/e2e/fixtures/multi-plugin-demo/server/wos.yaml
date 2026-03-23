@@ -1,0 +1,32 @@
+server:
+  name: demo-server
+  logLevel: info
+
+mqtt:
+  embedded: true
+  host: localhost
+  port: 1884
+
+admin:
+  enabled: true
+  port: 3000
+
+plugins:
+  identity:
+    enabled: true
+    config:
+      allow_registration: true
+      jwt_secret: demo-secret-key-for-testing-only
+      access_token_ttl: 3600
+      refresh_token_ttl: 86400
+  world-manager:
+    enabled: true
+    config:
+      world_name: Demo World
+      world_type: space
+      world_owner: system
+  messaging:
+    enabled: true
+    config:
+      retentionLimit: 1000
+      maxContentLength: 4000

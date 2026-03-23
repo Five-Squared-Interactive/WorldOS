@@ -1,0 +1,96 @@
+# ──────────────────────────────────────────────────────────────
+# WorldOS Server Configuration
+#
+# This is a sample configuration showing all available options.
+# Copy this directory and customize for your deployment.
+#
+# Usage:
+#   wos init ./my-server          # scaffold a new server
+#   wos start --foreground        # start in current dir
+#   wos status                    # check health
+# ──────────────────────────────────────────────────────────────
+
+# ── Server Settings ───────────────────────────────────────────
+server:
+  name: my-worldos-server
+  logLevel: info          # debug | info | warn | error
+
+# ── MQTT Broker ───────────────────────────────────────────────
+# WorldOS uses MQTT for inter-plugin messaging and health checks.
+# When embedded is true (default), WorldOS starts and manages a
+# bundled Mosquitto broker automatically. Set to false to use an
+# external broker.
+mqtt:
+  embedded: true
+  host: localhost
+  port: 1883
+  # websocketPort: 9001    # optional MQTT-over-WebSocket listener
+  # username: mqtt-user
+  # password: mqtt-pass
+
+# ── Admin Panel ───────────────────────────────────────────────
+# Web UI served by wos-admin (Fastify).
+admin:
+  enabled: true
+  port: 3000
+  # username: admin
+  # password: (set via `wos config admin.password <value>`)
+  # logo: ./my-logo.png          # custom logo for the admin sidebar (png/jpg/svg/webp)
+  # favicon: ./my-favicon.png    # custom browser tab icon (png/ico/svg/webp)
+
+# ── Plugins ───────────────────────────────────────────────────
+# Each key is a plugin name matching a directory under ./plugins/.
+# Plugins are installed with `wos add <source>`.
+plugins:
+
+  hello-logger:
+    enabled: true
+    version: 1.0.0
+    source: ./plugins/hello-logger
+    # Per-plugin config (accessible via ConfigManager)
+    config:
+      logFormat: json        # json | text
+      logLevel: info
+      outputFile: stdout     # stdout | file path
+
+  http-health:
+    enabled: true
+    version: 0.3.0
+    source: ./plugins/http-health
+    config:
+      port: 9090
+      path: /healthz
+      includePluginStatus: true
+
+  # identity:
+  #   enabled: true
+  #   version: 1.0.0
+  #   source: ./plugins/identity
+  #   config:
+  #     # jwt_secret: (auto-generated if not set)
+  #     access_token_ttl: 900         # 15 min (seconds)
+  #     refresh_token_ttl: 604800     # 7 days (seconds)
+  #     allow_registration: false     # self-registration via MQTT
+  #     bcrypt_salt_rounds: 10        # 4-14
+  #     # Seed initial admin user (only created if no admins exist):
+  #     # admin_username: admin
+  #     # admin_email: admin@example.com
+  #     # admin_password: (set via `wos config identity.admin_password <value>`)
+
+# ── Webhooks ──────────────────────────────────────────────────
+# HTTP callbacks fired on server/plugin events.
+# Supports HMAC-SHA256 signatures when `secret` is set.
+webhooks:
+  - url: https://hooks.example.com/worldos
+    events:
+      - plugin.started
+      - plugin.stopped
+      - plugin.crashed
+      - plugin.unhealthy
+    secret: change-me-to-a-real-secret
+
+  # Slack-style incoming webhook (no secret needed)
+  # - url: https://hooks.slack.com/services/T00/B00/xxxx
+  #   events:
+  #     - plugin.crashed
+  #     - plugin.failed

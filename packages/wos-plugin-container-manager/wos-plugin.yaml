@@ -1,0 +1,104 @@
+# WorldOS Plugin Manifest - Container Manager
+name: container-manager
+version: 1.0.0
+description: Manages Docker container lifecycle, scaling, port allocation, and status monitoring
+author: Five Squared Interactive
+
+runtime: node
+entrypoint: ./dist/index.js
+
+mqtt:
+  subscriptions:
+    # Service operations
+    - wos/container-manager/service/list
+    - wos/container-manager/service/get
+    - wos/container-manager/service/scale
+    # Instance lifecycle
+    - wos/container-manager/instance/create
+    - wos/container-manager/instance/start
+    - wos/container-manager/instance/stop
+    - wos/container-manager/instance/restart
+    - wos/container-manager/instance/remove
+    - wos/container-manager/instance/status
+    - wos/container-manager/instance/list
+    - wos/container-manager/instance/logs
+    # Image operations
+    - wos/container-manager/image/check
+    - wos/container-manager/image/pull
+    - wos/container-manager/image/list
+    # Bulk operations
+    - wos/container-manager/bulk/start
+    - wos/container-manager/bulk/stop
+    # Auth response
+    - wos/identity/token/validate/response
+  publications:
+    # Lifecycle events
+    - wos/container-manager/lifecycle/started
+    - wos/container-manager/lifecycle/stopped
+    - wos/container-manager/lifecycle/created
+    - wos/container-manager/lifecycle/removed
+    - wos/container-manager/lifecycle/scaled
+    # Auth validation
+    - wos/identity/token/validate
+
+config:
+  schema:
+    type: object
+    properties:
+      config_path:
+        type: string
+        description: Path to containers.json (relative to server dir)
+        default: ./config/containers.json
+      docker_socket:
+        type: string
+        description: Docker socket path override (auto-detected if not set)
+    required: []
+
+commands:
+  - name: list
+    description: List services and instances
+    usage: wos container list [--service <id>] [--json]
+    options:
+      - name: service
+        shorthand: s
+        description: Filter by service ID
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: start
+    description: Start container instance(s)
+    usage: wos container start <serviceId> [instanceId] [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: stop
+    description: Stop container instance(s)
+    usage: wos container stop <serviceId> [instanceId] [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: scale
+    description: Scale a service to N instances
+    usage: wos container scale <serviceId> <count> [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+
+admin:
+  panel:
+    title: Container Manager
+    icon: server
+    route: /container-manager
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Container Status
+      component: ./admin/card.js
+      width: 1
+
+dependencies:
+  - identity

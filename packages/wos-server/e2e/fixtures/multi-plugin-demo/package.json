@@ -1,0 +1,9 @@
+{
+  "name": "multi-plugin-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx start.ts",
+    "demo": "npx tsx --import ./sdk-shim.mjs demo.ts"
+  }
+}

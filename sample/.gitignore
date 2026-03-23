@@ -1,0 +1,17 @@
+# WorldOS
+node_modules/
+*.log
+.env
+.env.local
+
+# Plugin build artifacts
+plugins/*/dist/
+plugins/*/node_modules/
+
+# Runtime files
+.wos.pid
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db

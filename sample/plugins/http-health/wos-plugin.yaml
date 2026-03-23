@@ -1,0 +1,23 @@
+# ──────────────────────────────────────────────────────────────
+# Plugin Manifest — http-health
+#
+# Exposes a lightweight HTTP health endpoint that the server's
+# HealthMonitor (or external load balancers) can poll.
+# Demonstrates per-plugin config, MQTT publishing, and a
+# slightly more realistic plugin structure.
+# ──────────────────────────────────────────────────────────────
+
+name: http-health
+version: 0.3.0
+runtime: node
+entrypoint: ./index.js
+description: HTTP health endpoint for external monitoring
+
+mqtt:
+  publications:
+    - "worldos/health/http-health"
+
+# Optional: admin panel card
+# admin:
+#   cards:
+#     - component: ./panel/health-card.js

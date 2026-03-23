@@ -1,0 +1,82 @@
+name: messaging
+version: 0.1.0
+description: 'Messaging plugin for WorldOS — channels, DMs, and message history'
+author: 'Five Squared Interactive'
+runtime: node
+entrypoint: ./dist/index.js
+
+dependencies:
+  - identity
+
+mqtt:
+  subscriptions:
+    - wos/identity/token/validate/response
+    - wos/world-manager/lifecycle/reset
+    - wos/messaging/channel/create
+    - wos/messaging/channel/list
+    - wos/messaging/channel/delete
+    - wos/messaging/message/send
+    - wos/messaging/message/history
+    - wos/messaging/dm/send
+  publications:
+    - wos/identity/token/validate
+    - wos/messaging/deliver/channel/+
+    - wos/messaging/deliver/dm/+
+
+config:
+  schema:
+    retentionLimit:
+      type: number
+      default: 1000
+      min: 100
+      max: 100000
+      description: 'Maximum messages retained per conversation'
+    maxContentLength:
+      type: number
+      default: 4000
+      min: 1
+      max: 10000
+      description: 'Maximum message content length in characters'
+
+commands:
+  - name: list-channels
+    description: 'List channels for a world'
+    usage: 'wos messaging list-channels <worldId>'
+    options:
+      - name: json
+        shorthand: j
+        description: 'Output as JSON'
+        type: boolean
+  - name: history
+    description: 'Show message history for a conversation'
+    usage: 'wos messaging history <conversationId>'
+    options:
+      - name: limit
+        shorthand: l
+        description: 'Number of messages to show'
+        type: number
+      - name: json
+        shorthand: j
+        description: 'Output as JSON'
+        type: boolean
+  - name: send
+    description: 'Send a message to a conversation'
+    usage: 'wos messaging send <conversationId> <message>'
+
+admin:
+  panel:
+    title: Messaging
+    icon: message
+    route: /messaging
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Messaging
+      component: ./admin/card.js
+      width: 1
+
+hooks:
+  onInstall: ~
+  onEnable: ~
+  onDisable: ~
+  onUninstall: ~

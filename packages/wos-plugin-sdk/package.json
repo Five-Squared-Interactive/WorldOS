@@ -1,0 +1,14 @@
+{
+  "name": "@worldos/plugin-sdk",
+  "version": "0.1.0",
+  "description": "WorldOS Plugin SDK - Node.js SDK for building WorldOS plugins",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "mqtt": "^5.15.0"
+  }
+}

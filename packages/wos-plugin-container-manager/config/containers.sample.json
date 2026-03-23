@@ -1,0 +1,47 @@
+{
+  "defaults": {
+    "network": "wos-network",
+    "volumeBasePath": "./data",
+    "portRangeStart": 32768,
+    "portRangeEnd": 60999
+  },
+  "services": [
+    {
+      "id": "webverse-runtime",
+      "name": "WebVerse Runtime",
+      "image": "fivesquared/webverse-runtime:latest",
+      "ports": [
+        { "container": 5525, "host": "dynamic" }
+      ],
+      "volumes": [
+        { "source": "./data/webverse/${serviceId}/${instanceId}", "target": "/app/data", "type": "bind" }
+      ],
+      "environment": {
+        "NODE_ENV": "production",
+        "WOS_SERVICE_ID": "${serviceId}",
+        "WOS_INSTANCE_ID": "${instanceId}"
+      },
+      "restart": "unless-stopped",
+      "instances": [
+        { "instanceId": "instance-0" }
+      ]
+    },
+    {
+      "id": "mqtt-broker",
+      "name": "MQTT Broker",
+      "image": "eclipse-mosquitto:2",
+      "ports": [
+        { "container": 1883, "host": 1883 },
+        { "container": 9001, "host": 9001 }
+      ],
+      "volumes": [
+        { "source": "./data/mosquitto/config", "target": "/mosquitto/config", "type": "bind" },
+        { "source": "./data/mosquitto/data", "target": "/mosquitto/data", "type": "bind" }
+      ],
+      "restart": "always",
+      "instances": [
+        { "instanceId": "instance-0" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@worldos/plugin-container-manager",
+  "version": "1.0.0",
+  "description": "Container Manager plugin for WorldOS - Docker container lifecycle, scaling, port allocation",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@worldos/plugin-sdk": "file:../wos-plugin-sdk"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
+  },
+  "files": [
+    "dist",
+    "wos-plugin.yaml"
+  ]
+}

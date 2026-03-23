@@ -1,0 +1,6 @@
+name: e2e-test-plugin
+displayName: E2E Test Plugin
+version: 1.0.0
+runtime: node
+entrypoint: ./index.js
+description: Plugin for E2E testing

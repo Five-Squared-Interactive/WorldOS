@@ -1,0 +1,73 @@
+# WorldOS Plugin Manifest - Asset Manager
+name: asset-manager
+version: 0.1.0
+description: Manages asset storage, metadata, and retrieval for world assets
+author: Five Squared Interactive
+
+runtime: node
+entrypoint: ./dist/index.js
+
+mqtt:
+  subscriptions:
+    # Asset operations
+    - wos/asset-manager/asset/create
+    - wos/asset-manager/asset/get
+    - wos/asset-manager/asset/list
+    - wos/asset-manager/asset/delete
+    - wos/asset-manager/asset/usage
+    # Auth response
+    - wos/identity/token/validate/response
+    # World lifecycle cleanup
+    - wos/world-manager/lifecycle/reset
+  publications:
+    # Auth validation
+    - wos/identity/token/validate
+
+commands:
+  - name: list
+    description: List assets in a world
+    usage: wos asset list <worldId> [--type <type>] [--json]
+    options:
+      - name: type
+        shorthand: t
+        description: Filter by asset type
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: info
+    description: Show asset details
+    usage: wos asset info <worldId> <assetId> [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: delete
+    description: Delete an asset
+    usage: wos asset delete <worldId> <assetId> [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: usage
+    description: Show storage usage for a world
+    usage: wos asset usage <worldId> [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+
+admin:
+  panel:
+    title: Asset Manager
+    icon: file
+    route: /asset-manager
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Asset Storage
+      component: ./admin/card.js
+      width: 1
+
+dependencies:
+  - identity

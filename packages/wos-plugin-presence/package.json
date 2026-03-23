@@ -1,0 +1,25 @@
+{
+  "name": "@worldos/plugin-presence",
+  "version": "1.0.0",
+  "description": "Reference plugin for WorldOS - tracks online user presence",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@worldos/plugin-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
+  },
+  "files": [
+    "dist",
+    "wos-plugin.yaml"
+  ]
+}

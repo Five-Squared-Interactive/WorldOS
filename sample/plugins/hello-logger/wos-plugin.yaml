@@ -1,0 +1,32 @@
+# ──────────────────────────────────────────────────────────────
+# Plugin Manifest — hello-logger
+#
+# A minimal "hello world" plugin that subscribes to an MQTT
+# topic and logs every message it receives. Good starting point
+# for building your own plugin.
+# ──────────────────────────────────────────────────────────────
+
+name: hello-logger
+version: 1.0.0
+runtime: node                 # node | python | binary | docker
+entrypoint: ./index.js
+description: Logs MQTT messages to stdout — a minimal example plugin
+
+# Optional: declare MQTT topics this plugin uses
+mqtt:
+  subscriptions:
+    - "worldos/events/#"       # subscribe to all event topics
+  publications:
+    - "worldos/logs/hello-logger"
+
+# Admin panel configuration
+admin:
+  panel:
+    title: Hello Logger
+    icon: log
+    route: /hello-logger
+    entrypoint: ./admin/panel.js
+
+# Optional: declare dependencies on other plugins
+# dependencies:
+#   - some-other-plugin

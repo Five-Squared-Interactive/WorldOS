@@ -1,0 +1,136 @@
+# WorldOS Plugin Manifest - World Manager
+name: world-manager
+version: 1.0.0
+description: Manages world metadata, entity CRUD, templates, and terrain queries
+author: Five Squared Interactive
+
+runtime: node
+entrypoint: ./dist/index.js
+
+mqtt:
+  subscriptions:
+    # World operations
+    - wos/world-manager/world/get
+    - wos/world-manager/world/update
+    - wos/world-manager/world/init
+    - wos/world-manager/world/reset
+    # Entity CRUD
+    - wos/world-manager/entity/create
+    - wos/world-manager/entity/query
+    - wos/world-manager/entity/get
+    - wos/world-manager/entity/update
+    - wos/world-manager/entity/delete
+    # Entity templates
+    - wos/world-manager/template/list
+    - wos/world-manager/template/get
+    - wos/world-manager/template/create
+    - wos/world-manager/template/delete
+    - wos/world-manager/template/instantiate
+    # Terrain
+    - wos/world-manager/terrain/height
+    - wos/world-manager/terrain/heights
+    - wos/world-manager/terrain/biome
+    - wos/world-manager/terrain/normal
+    - wos/world-manager/terrain/region
+    - wos/world-manager/terrain/geo-to-world
+    - wos/world-manager/terrain/world-to-geo
+    # World templates
+    - wos/world-manager/world-template/list
+    - wos/world-manager/world-template/get
+    - wos/world-manager/world-template/validate
+  publications:
+    # Lifecycle events
+    - wos/world-manager/lifecycle/initialized
+    - wos/world-manager/lifecycle/reset
+    - wos/world-manager/lifecycle/updated
+    # Auth validation
+    - wos/identity/token/validate
+
+config:
+  schema:
+    type: object
+    properties:
+      world_name:
+        type: string
+        description: Name of the world
+        default: My World
+      world_type:
+        type: string
+        description: World type
+        enum: [space, planet, mini-world, custom]
+        default: space
+      world_owner:
+        type: string
+        description: User ID of the world owner
+      default_template:
+        type: string
+        description: Template to auto-initialize from on first start
+      templates_path:
+        type: string
+        description: Path to templates directory (relative to server dir)
+        default: ./templates
+      data_dir:
+        type: string
+        description: Path to data directory (relative to server dir)
+        default: ./data
+    required: []
+
+commands:
+  - name: info
+    description: Show world information
+    usage: wos world info [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: init
+    description: Initialize world from template
+    usage: wos world init [--template <name>] [--name <name>] [--type <type>]
+    options:
+      - name: template
+        shorthand: t
+        description: Template name to initialize from
+        type: string
+      - name: name
+        shorthand: n
+        description: World name
+        type: string
+      - name: type
+        description: World type (space, planet, mini-world, custom)
+        type: string
+  - name: reset
+    description: Reset world to template state (destructive)
+    usage: wos world reset [--template <name>]
+    options:
+      - name: template
+        shorthand: t
+        description: Template name to reset from
+        type: string
+  - name: entity-count
+    description: Show entity counts
+    usage: wos world entity-count [--json]
+    options:
+      - name: json
+        description: Output as JSON
+        type: boolean
+
+admin:
+  panel:
+    title: World Manager
+    icon: globe
+    route: /world-manager
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: World Status
+      component: ./admin/card.js
+      width: 1
+
+dependencies:
+  - identity
+
+hooks:
+  onInstall: true
+  onEnable: true
+  onDisable: true
+  onUninstall: true

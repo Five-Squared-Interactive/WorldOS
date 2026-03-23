@@ -1,0 +1,129 @@
+# WorldOS Identity Plugin Manifest
+
+name: identity
+version: 1.0.0
+description: User identity, JWT authentication, session management, and RBAC permissions
+author: WorldOS Team
+
+runtime: node
+entrypoint: ./dist/index.js
+
+mqtt:
+  subscriptions:
+    - wos/identity/auth/login
+    - wos/identity/auth/register
+    - wos/identity/auth/refresh
+    - wos/identity/auth/logout
+    - wos/identity/token/validate
+    - wos/identity/permission/check
+  publications:
+    - wos/identity/user/created
+    - wos/identity/user/updated
+    - wos/identity/user/deleted
+    - wos/identity/session/+/started
+    - wos/identity/session/+/ended
+
+config:
+  schema:
+    type: object
+    properties:
+      jwt_secret:
+        type: string
+        description: JWT signing secret (optional — auto-generated if not set)
+      access_token_ttl:
+        type: number
+        description: Access token TTL in seconds
+        default: 900
+        minimum: 60
+        maximum: 86400
+      refresh_token_ttl:
+        type: number
+        description: Refresh token TTL in seconds
+        default: 604800
+        minimum: 3600
+        maximum: 2592000
+      allow_registration:
+        type: boolean
+        description: Allow self-registration via auth/register topic
+        default: false
+      bcrypt_salt_rounds:
+        type: number
+        description: bcrypt cost factor for password hashing
+        default: 10
+        minimum: 4
+        maximum: 14
+    required: []
+
+commands:
+  - name: create-user
+    description: Create a new user
+    usage: wos identity create-user --username <name> --email <email> --password <pass> [--role <role>] [--json]
+    options:
+      - name: username
+        shorthand: u
+        description: Username (3-32 chars)
+        type: string
+        required: true
+      - name: email
+        shorthand: e
+        description: Email address
+        type: string
+        required: true
+      - name: password
+        shorthand: p
+        description: Password (min 8 chars)
+        type: string
+        required: true
+      - name: role
+        shorthand: r
+        description: User role (admin, user, guest)
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: list-users
+    description: List all users
+    usage: wos identity list-users [--role <role>] [--json]
+    options:
+      - name: role
+        shorthand: r
+        description: Filter by role
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: revoke-token
+    description: Revoke a refresh token or all tokens for a user
+    usage: wos identity revoke-token [--token <token>] [--user <userId>] [--json]
+    options:
+      - name: token
+        shorthand: t
+        description: Specific refresh token to revoke
+        type: string
+      - name: user
+        shorthand: u
+        description: Revoke all tokens for user ID
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+
+admin:
+  panel:
+    title: User Identity
+    icon: shield
+    route: /identity
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Users & Sessions
+      component: ./admin/card.js
+      width: 1
+
+dependencies: []
+
+hooks:
+  onInstall: true
+  onEnable: true
+  onDisable: true
+  onUninstall: true
