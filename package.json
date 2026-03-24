@@ -8,7 +8,7 @@
   "scripts": {
     "install:all": "npm install",
     "build": "npm run build:sdk && npm run build:core && npm run build:plugins",
-    "build:sdk": "cd packages/wos-plugin-sdk && echo 'SDK: pre-built (no source)'",
+    "build:sdk": "npm run build --workspace=@worldos/plugin-sdk",
     "build:core": "npm run build --workspace=@worldos/protocol --workspace=@worldos/server --workspace=@worldos/admin --workspace=@worldos/cli --workspace=@worldos/world --if-present",
     "build:plugins": "npm run build --workspace=@worldos/plugin-identity --workspace=@worldos/plugin-messaging --workspace=@worldos/plugin-world-manager --workspace=@worldos/plugin-asset-manager --workspace=@worldos/plugin-container-manager --workspace=@worldos/plugin-presence --if-present",
     "build:all": "npm run build",
