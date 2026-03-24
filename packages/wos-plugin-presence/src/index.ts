@@ -100,28 +100,19 @@ export class PresencePlugin extends WOSPlugin {
    * Subscribe to MQTT topics
    */
   private async subscribeToTopics(context: PluginContext): Promise<void> {
-    // Subscribe to session joined events
-    await context.mqtt.subscribe(
+    await context.mqtt.subscribeWithHandler(
       'wos/sync/session/+/joined',
-      (topic, message) => {
-        this.handleSessionJoined(context, topic, message);
-      }
+      (msg: any) => this.handleSessionJoined(context, msg.topic, msg.payload),
     );
 
-    // Subscribe to session left events
-    await context.mqtt.subscribe(
+    await context.mqtt.subscribeWithHandler(
       'wos/sync/session/+/left',
-      (topic, message) => {
-        this.handleSessionLeft(context, topic, message);
-      }
+      (msg: any) => this.handleSessionLeft(context, msg.topic, msg.payload),
     );
 
-    // Subscribe to presence requests
-    await context.mqtt.subscribe(
+    await context.mqtt.subscribeWithHandler(
       'wos/presence/request/+',
-      (topic, message) => {
-        this.handlePresenceRequest(context, topic, message);
-      }
+      (msg: any) => this.handlePresenceRequest(context, msg.topic, msg.payload),
     );
   }
 
@@ -131,7 +122,7 @@ export class PresencePlugin extends WOSPlugin {
   private setupEventHandlers(context: PluginContext): void {
     this.tracker.on('user:joined', (presence) => {
       if (this.presenceConfig.enableNotifications) {
-        context.mqtt.publish('wos/presence/user/joined', {
+        context.mqtt.publishRaw('wos/presence/user/joined', {
           userId: presence.userId,
           sessionId: presence.sessionId,
           worldId: presence.worldId,
@@ -143,7 +134,7 @@ export class PresencePlugin extends WOSPlugin {
 
     this.tracker.on('user:left', (userId, sessionId, reason) => {
       if (this.presenceConfig.enableNotifications) {
-        context.mqtt.publish('wos/presence/user/left', {
+        context.mqtt.publishRaw('wos/presence/user/left', {
           userId,
           sessionId,
           reason,
@@ -235,7 +226,7 @@ export class PresencePlugin extends WOSPlugin {
           };
       }
 
-      context.mqtt.publish(`wos/presence/response/${request.requestId}`, response);
+      context.mqtt.publishRaw(`wos/presence/response/${request.requestId}`, response);
     } catch (error) {
       context.logger.error('Failed to handle presence request', { error });
     }

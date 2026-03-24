@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@worldos/plugin-sdk": "workspace:*"
+    "@worldos/plugin-sdk": "*"
   },
   "devDependencies": {
     "typescript": "^5.3.0",

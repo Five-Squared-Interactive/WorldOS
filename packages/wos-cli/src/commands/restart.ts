@@ -218,7 +218,7 @@ export default class Restart extends Command {
 
     try {
       // Dynamic import — mqtt is provided by wos-server at runtime
-      // @ts-expect-error - mqtt resolved at runtime when wos-server is installed
+      // @ts-ignore - mqtt resolved at runtime when wos-server is installed
       const mqtt = await import('mqtt');
 
       const client = mqtt.connect('mqtt://localhost:1883');

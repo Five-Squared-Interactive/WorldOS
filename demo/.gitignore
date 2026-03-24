@@ -1,0 +1,4 @@
+# Runtime data
+data/
+.wos.pid
+*.db

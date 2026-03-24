@@ -6,13 +6,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && cp -r src/admin dist/admin",
+    "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@worldos/plugin-sdk": "file:../wos-plugin-sdk",
+    "@worldos/plugin-sdk": "*",
     "better-sqlite3": "^11.0.0"
   },
   "devDependencies": {

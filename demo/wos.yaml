@@ -1,0 +1,32 @@
+# WorldOS Demo Server
+# Start with: wos start --foreground
+# Admin panel: http://localhost:3000
+
+server:
+  name: worldos-demo
+  logLevel: info
+
+mqtt:
+  embedded: true
+  host: localhost
+  port: 1884
+
+admin:
+  enabled: true
+  port: 3000
+
+plugins:
+  identity:
+    enabled: true
+    source: ../packages/wos-plugin-identity
+    config:
+      allowRegistration: true
+      jwtSecret: demo-secret-change-in-production
+
+  messaging:
+    enabled: true
+    source: ../packages/wos-plugin-messaging
+
+  world-manager:
+    enabled: true
+    source: ../packages/wos-plugin-world-manager

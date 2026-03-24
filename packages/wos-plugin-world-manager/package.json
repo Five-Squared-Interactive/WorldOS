@@ -12,7 +12,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@worldos/plugin-sdk": "file:../wos-plugin-sdk",
+    "@worldos/plugin-sdk": "*",
     "better-sqlite3": "^11.0.0"
   },
   "devDependencies": {
