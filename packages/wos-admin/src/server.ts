@@ -47,6 +47,8 @@ interface AdminPanelInfo {
   entryPoint: string;
   icon?: string;
   route?: string;
+  /** Absolute path to the plugin root directory (used to serve admin static files) */
+  sourceDir?: string;
 }
 
 interface LogEntry {
@@ -637,10 +639,78 @@ export async function createAdminServer(
 
   // Serve static files if staticDir is provided
   if (options.staticDir && fs.existsSync(options.staticDir)) {
-    // Serve main static files
+    // Register explicit routes for plugin static files BEFORE the catch-all static handler.
+    // Each plugin's files are served from its resolved source directory.
+    if (options.panels) {
+      const pluginSourceDirs = new Map<string, string>();
+      for (const panel of options.panels) {
+        if (panel.sourceDir && fs.existsSync(panel.sourceDir)) {
+          pluginSourceDirs.set(panel.name, panel.sourceDir);
+        }
+      }
+
+      if (pluginSourceDirs.size > 0) {
+        server.get('/plugins/:pluginName/*', async (request, reply) => {
+          const { pluginName } = request.params as { pluginName: string; '*': string };
+          const filePath = (request.params as { '*': string })['*'];
+          const sourceDir = pluginSourceDirs.get(pluginName);
+
+          if (sourceDir && filePath) {
+            const fullPath = path.join(sourceDir, filePath);
+            // Prevent directory traversal
+            if (!fullPath.startsWith(sourceDir)) {
+              reply.code(403).send({ error: 'Forbidden' });
+              return;
+            }
+            if (fs.existsSync(fullPath)) {
+              const ext = path.extname(fullPath).toLowerCase();
+              const mimeTypes: Record<string, string> = {
+                '.js': 'application/javascript',
+                '.mjs': 'application/javascript',
+                '.css': 'text/css',
+                '.html': 'text/html',
+                '.json': 'application/json',
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.svg': 'image/svg+xml',
+              };
+              reply.header('content-type', mimeTypes[ext] ?? 'application/octet-stream');
+              reply.header('x-content-type-options', 'nosniff');
+              reply.header('cache-control', 'no-cache');
+              return reply.send(fs.createReadStream(fullPath));
+            }
+          }
+
+          // Fall back to serverDir/plugins/ directory
+          const fallbackPath = path.join(serverDir, 'plugins', pluginName, filePath);
+          if (fs.existsSync(fallbackPath)) {
+            const ext = path.extname(fallbackPath).toLowerCase();
+            const mimeTypes: Record<string, string> = {
+              '.js': 'application/javascript',
+              '.mjs': 'application/javascript',
+              '.css': 'text/css',
+              '.html': 'text/html',
+              '.json': 'application/json',
+              '.png': 'image/png',
+              '.jpg': 'image/jpeg',
+              '.svg': 'image/svg+xml',
+            };
+            reply.header('content-type', mimeTypes[ext] ?? 'application/octet-stream');
+            reply.header('x-content-type-options', 'nosniff');
+            reply.header('cache-control', 'no-cache');
+            return reply.send(fs.createReadStream(fallbackPath));
+          }
+
+          reply.code(404).send({ error: 'Not found' });
+        });
+      }
+    }
+
+    // Serve main static files — wildcard: false so it doesn't shadow explicit plugin routes
     await server.register(fastifyStatic, {
       root: options.staticDir,
       prefix: '/',
+      wildcard: false,
       decorateReply: true,
       setHeaders: (reply) => {
         reply.setHeader('x-content-type-options', 'nosniff');
@@ -648,24 +718,10 @@ export async function createAdminServer(
       },
     });
 
-    // Serve plugin static files
-    const pluginsDir = path.join(serverDir, 'plugins');
-    if (fs.existsSync(pluginsDir)) {
-      await server.register(fastifyStatic, {
-        root: pluginsDir,
-        prefix: '/plugins/',
-        decorateReply: false,
-        setHeaders: (reply) => {
-          reply.setHeader('x-content-type-options', 'nosniff');
-          reply.setHeader('cache-control', 'no-cache');
-        },
-      });
-    }
-
     // SPA fallback - serve index.html for unmatched non-API routes
     server.setNotFoundHandler(async (request, reply) => {
-      // Don't serve SPA fallback for API routes
-      if (request.url.startsWith('/api/')) {
+      // Don't serve SPA fallback for API routes or plugin files
+      if (request.url.startsWith('/api/') || request.url.startsWith('/plugins/')) {
         reply.code(404).send({ error: 'Not found' });
         return;
       }

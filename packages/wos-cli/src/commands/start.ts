@@ -332,7 +332,7 @@ export default class Start extends Command {
           const staticDir = path.join(adminPkgPath, 'public');
 
           // Scan plugin manifests for admin panels
-          const panels: { name: string; displayName: string; entryPoint: string; icon?: string; route?: string }[] = [];
+          const panels: { name: string; displayName: string; entryPoint: string; icon?: string; route?: string; sourceDir?: string }[] = [];
           const pluginsConfig = config.plugins as Record<string, Record<string, unknown>> | undefined;
           if (pluginsConfig) {
             for (const [pluginName, pluginConf] of Object.entries(pluginsConfig)) {
@@ -351,6 +351,7 @@ export default class Start extends Command {
                     entryPoint: `/plugins/${pluginName}/admin/panel.js`,
                     icon: panel.icon,
                     route: panel.route,
+                    sourceDir: pluginDir,
                   });
                 }
               } catch {
