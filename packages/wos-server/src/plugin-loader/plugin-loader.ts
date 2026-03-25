@@ -12,7 +12,9 @@
  */
 
 import { EventEmitter } from 'events';
+import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as yaml from 'yaml';
 import { PluginScanner } from './plugin-scanner.js';
 import { ProcessSpawner, SpawnConfig } from './process-spawner.js';
 import { RestartPolicy } from './restart-policy.js';
@@ -97,31 +99,71 @@ export class PluginLoader extends EventEmitter {
   }
 
   /**
-   * Discover and load all enabled plugins
+   * Discover and load all enabled plugins.
+   * Reads wos.yaml to resolve plugin source directories, then falls back
+   * to scanning the conventional plugins/ subdirectory.
    */
   async loadAll(): Promise<void> {
-    const pluginsDir = path.join(this.config.serverDir, 'plugins');
+    const allPlugins: DiscoveredPlugin[] = [];
+    const allErrors: { pluginDir: string; message: string }[] = [];
 
-    // Scan for plugins
+    // 1. Read wos.yaml and resolve source-based plugin directories
+    const configPath = path.join(this.config.serverDir, 'wos.yaml');
+    try {
+      const content = await fs.readFile(configPath, 'utf-8');
+      const config = yaml.parse(content) as Record<string, unknown>;
+      const pluginsConfig = config.plugins as Record<string, Record<string, unknown>> | undefined;
+
+      if (pluginsConfig) {
+        for (const [pluginName, pluginConf] of Object.entries(pluginsConfig)) {
+          if (!pluginConf || typeof pluginConf !== 'object') continue;
+          if (pluginConf.enabled === false) continue;
+
+          const source = pluginConf.source as string | undefined;
+          if (source) {
+            const pluginDir = path.resolve(this.config.serverDir, source);
+            const result = await this.scanner.scanPlugin(pluginDir);
+            if (result.plugin) {
+              allPlugins.push(result.plugin);
+            }
+            if (result.error) {
+              allErrors.push(result.error);
+            }
+          }
+        }
+      }
+    } catch {
+      // No wos.yaml or parse error — fall through to directory scan
+    }
+
+    // 2. Also scan conventional plugins/ directory for any not already discovered
+    const pluginsDir = path.join(this.config.serverDir, 'plugins');
     const scanResult = await this.scanner.scan(pluginsDir);
+    const discoveredNames = new Set(allPlugins.map(p => p.name));
+    for (const plugin of scanResult.plugins) {
+      if (!discoveredNames.has(plugin.name)) {
+        allPlugins.push(plugin);
+      }
+    }
+    allErrors.push(...scanResult.errors);
 
     // Emit discovery events
-    for (const plugin of scanResult.plugins) {
+    for (const plugin of allPlugins) {
       this.emit('plugin:discovered', plugin);
     }
 
     // Log errors but continue
-    for (const error of scanResult.errors) {
+    for (const error of allErrors) {
       this.emit('loader:error', new Error(`Plugin scan error in ${error.pluginDir}: ${error.message}`));
     }
 
-    if (scanResult.plugins.length === 0) {
+    if (allPlugins.length === 0) {
       this.emit('loader:ready');
       return;
     }
 
     // Resolve startup order based on dependencies
-    const pluginDeps: PluginDependencies[] = scanResult.plugins.map(p => ({
+    const pluginDeps: PluginDependencies[] = allPlugins.map(p => ({
       name: p.name,
       dependencies: p.manifest.dependencies,
     }));
@@ -136,7 +178,7 @@ export class PluginLoader extends EventEmitter {
 
     // Start plugins in order
     for (const pluginName of startupOrder) {
-      const plugin = scanResult.plugins.find(p => p.name === pluginName);
+      const plugin = allPlugins.find(p => p.name === pluginName);
       if (plugin) {
         await this.loadPlugin(plugin);
       }

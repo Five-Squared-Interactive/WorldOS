@@ -118,7 +118,7 @@ export abstract class WOSPlugin extends EventEmitter {
       if (!serverDir || !pluginName) return null;
 
       const yamlPath = join(serverDir, 'wos.yaml');
-      const content = readFileSync(yamlPath, 'utf-8');
+      const content = readFileSync(yamlPath, 'utf-8').replace(/\r\n/g, '\n');
 
       // Simple YAML parser for the plugin config section
       // Find the plugin's config block
@@ -138,7 +138,8 @@ export abstract class WOSPlugin extends EventEmitter {
 
       // Parse indented key-value pairs (6 spaces indent)
       const config: Record<string, unknown> = {};
-      for (const line of afterConfig.split('\n')) {
+      for (const rawLine of afterConfig.split('\n')) {
+        const line = rawLine.replace(/\r$/, '');
         if (line.trim() === '') continue;
         const kvMatch = line.match(/^\s{6}(\w+):\s*(.+)$/);
         if (!kvMatch) break;

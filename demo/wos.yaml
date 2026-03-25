@@ -20,8 +20,8 @@ plugins:
     enabled: true
     source: ../packages/wos-plugin-identity
     config:
-      allowRegistration: true
-      jwtSecret: demo-secret-change-in-production
+      allow_registration: true
+      jwt_secret: demo-secret-change-in-production
 
   messaging:
     enabled: true
