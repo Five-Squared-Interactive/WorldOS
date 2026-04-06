@@ -1,0 +1,159 @@
+# WorldOS Sync Manager Plugin Manifest
+
+name: sync-manager
+version: 1.0.0
+description: Sync manager plugin - wraps WorldSync 2.0 with auth bridge, region permissions, and dual MQTT bus support
+author: WorldOS Team
+
+runtime: node
+entrypoint: ./dist/index.js
+
+mqtt:
+  subscriptions:
+    - wos/sync-manager/session/create
+    - wos/sync-manager/session/destroy
+    - wos/sync-manager/session/list
+    - wos/sync-manager/session/get
+    - wos/sync-manager/world/open
+    - wos/sync-manager/world/close
+    - wos/sync-manager/user/token
+    # Legacy backward-compatible topics
+    - wos/sync/createsession
+    - wos/sync/deletesession
+    - wos/sync/getsessions
+    - wos/sync/usertoken
+    - wos/sync/openworld
+    - wos/sync/closeworld
+  publications:
+    - wos/sync-manager/session/create/response
+    - wos/sync-manager/session/destroy/response
+    - wos/sync-manager/session/list/response
+    - wos/sync-manager/session/get/response
+    - wos/sync-manager/world/open/response
+    - wos/sync-manager/world/close/response
+    - wos/sync-manager/lifecycle/session-created
+    - wos/sync-manager/lifecycle/session-destroyed
+    - wos/sync-manager/lifecycle/client-joined
+    - wos/sync-manager/lifecycle/client-left
+
+config:
+  schema:
+    type: object
+    properties:
+      sync_mqtt_host:
+        type: string
+        description: Hostname for the WorldSync MQTT broker (Mosquitto)
+        default: localhost
+      sync_mqtt_tcp_port:
+        type: number
+        description: TCP port for WorldSync Mosquitto broker
+        default: 1883
+      sync_mqtt_ws_port:
+        type: number
+        description: WebSocket port for WorldSync Mosquitto broker
+        default: 8083
+      mosquitto_path:
+        type: string
+        description: Path to Mosquitto executable
+        default: mosquitto
+      heartbeat_interval_ms:
+        type: number
+        description: Client heartbeat interval in milliseconds
+        default: 30000
+        minimum: 5000
+      max_entities_per_session:
+        type: number
+        description: Maximum entities per sync session
+        default: 10000
+        minimum: 100
+      max_clients_per_session:
+        type: number
+        description: Maximum clients per sync session
+        default: 100
+        minimum: 1
+      persistence_enabled:
+        type: boolean
+        description: Enable SQLite persistence for sync state
+        default: false
+      persistence_backend:
+        type: string
+        description: "Persistence backend: 'memory' or 'sqlite'"
+        default: sqlite
+        enum: [memory, sqlite]
+      persistence_path:
+        type: string
+        description: Path to persistence database file
+        default: ./data/sync.db
+      regions_base_path:
+        type: string
+        description: Base path for region database files
+        default: ./data/regions
+      world_db_path:
+        type: string
+        description: Path to world database file
+        default: ./data/world.db
+      token_cache_ttl_ms:
+        type: number
+        description: Token validation cache TTL in milliseconds
+        default: 300000
+        minimum: 10000
+      permission_cache_ttl_ms:
+        type: number
+        description: Permission check cache TTL in milliseconds
+        default: 30000
+        minimum: 1000
+    required: []
+
+commands:
+  - name: list-sessions
+    description: List all active sync sessions
+    usage: wos sync-manager list-sessions [--json]
+    options:
+      - name: json
+        shorthand: j
+        description: Output as JSON
+        type: boolean
+  - name: session-info
+    description: Show detailed session information
+    usage: wos sync-manager session-info --session <id>
+    options:
+      - name: session
+        shorthand: s
+        description: Session ID
+        type: string
+        required: true
+  - name: kick-client
+    description: Force-remove a client from a session
+    usage: wos sync-manager kick-client --session <id> --client <id>
+    options:
+      - name: session
+        shorthand: s
+        description: Session ID
+        type: string
+        required: true
+      - name: client
+        shorthand: c
+        description: Client ID
+        type: string
+        required: true
+
+admin:
+  panel:
+    title: Sync Manager
+    icon: refresh-cw
+    route: /sync-manager
+    entrypoint: ./admin/panel.js
+  dashboard:
+    card:
+      title: Sync Sessions
+      component: ./admin/card.js
+      width: 1
+
+dependencies:
+  - identity
+
+hooks:
+  onInstall: true
+  onEnable: true
+  onDisable: true
+  onUninstall: true

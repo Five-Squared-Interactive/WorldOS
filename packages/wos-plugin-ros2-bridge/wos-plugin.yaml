@@ -1,0 +1,84 @@
+# WorldOS Plugin Manifest - ROS2 Bridge
+# Bridges ROS2 topics and services to WOS MQTT via rosbridge WebSocket
+
+# Basic plugin metadata
+name: ros2-bridge
+version: 1.0.0
+description: Bridges ROS2 topics and services to WOS MQTT via rosbridge WebSocket
+author: Five Squared Interactive
+
+# Runtime configuration
+runtime: node
+entrypoint: ./dist/index.js
+
+# Topics this plugin uses
+mqtt:
+  subscriptions:
+    - wos/ros2/+/publish/#
+    - wos/ros2/+/service/call
+  publications:
+    - wos/ros2/+/#
+
+# Plugin configuration schema
+# NOTE: Complex config (connections, topics, services) lives in an external JSON file.
+# The SDK YAML parser only handles flat key-value pairs.
+config:
+  schema:
+    type: object
+    properties:
+      configFile:
+        type: string
+        description: Path to JSON config file with connection details (relative to plugin dir)
+        default: ros2-bridge.json
+    required: []
+
+# CLI commands provided by this plugin
+commands:
+  - name: status
+    description: Show connection status for all robots
+    usage: wos ros2 status [--robot <name>] [--json]
+    flags:
+      - name: robot
+        shorthand: r
+        description: Filter by robot name
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: topics
+    description: List all bridged topics
+    usage: wos ros2 topics [--robot <name>] [--json]
+    flags:
+      - name: robot
+        shorthand: r
+        description: Filter by robot name
+        type: string
+      - name: json
+        description: Output as JSON
+        type: boolean
+  - name: publish
+    description: Publish a message to a ROS topic via the bridge
+    usage: wos ros2 publish <robot> <topic> <message>
+    flags: []
+  - name: subscribe
+    description: Subscribe to a bridged ROS topic and print messages
+    usage: wos ros2 subscribe <robot> <topic> [--json] [--count <n>]
+    flags:
+      - name: json
+        description: Output raw JSON
+        type: boolean
+      - name: count
+        shorthand: n
+        description: Stop after n messages
+        type: number
+
+# Admin panel configuration
+admin:
+  panel:
+    title: ROS2 Bridge
+    icon: cpu
+    route: /ros2-bridge
+    entrypoint: ./admin/panel.js
+
+# Dependencies (other plugins required)
+dependencies: []

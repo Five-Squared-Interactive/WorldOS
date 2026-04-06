@@ -1,0 +1,30 @@
+{
+  "name": "@worldos/plugin-sync-manager",
+  "version": "1.0.0",
+  "description": "Sync manager plugin for WorldOS - wraps WorldSync 2.0 as a WOS plugin with auth bridge and region permissions",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@worldos/plugin-sdk": "*",
+    "@fivesquaredinteractive/worldsync": "file:../../../../../../WorldOS/WorldSync",
+    "better-sqlite3": "^11.0.0",
+    "mqtt": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
+  },
+  "files": [
+    "dist",
+    "wos-plugin.yaml",
+    "admin"
+  ]
+}
