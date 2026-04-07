@@ -12,7 +12,7 @@ import type { PluginMqttClient } from '@worldos/plugin-sdk';
 import { RosbridgeConnection } from './rosbridge-connection.js';
 import { TopicBridge } from './topic-bridge.js';
 import { ServiceBridge } from './service-bridge.js';
-import type { ROS2BridgeConfig, ConnectionConfig, RobotStatus } from './types/rosbridge.js';
+import type { ROS2BridgeConfig, ConnectionConfig, RobotStatus, BridgeLogger } from './types/rosbridge.js';
 
 interface RobotBridge {
   connection: RosbridgeConnection;
@@ -25,13 +25,13 @@ export class ConnectionManager extends EventEmitter {
   private config: ROS2BridgeConfig;
   private mqtt: PluginMqttClient;
   private isStopped: () => boolean;
-  private logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void };
+  private logger: BridgeLogger;
 
   constructor(
     config: ROS2BridgeConfig,
     mqtt: PluginMqttClient,
     isStopped: () => boolean,
-    logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void },
+    logger: BridgeLogger,
   ) {
     super();
     this.config = config;
@@ -57,7 +57,7 @@ export class ConnectionManager extends EventEmitter {
 
     for (const result of results) {
       if (result.status === 'rejected') {
-        this.logger.error('Failed to connect robot:', result.reason);
+        this.logger.error(`Failed to connect robot: ${result.reason}`);
       }
     }
   }
@@ -77,7 +77,7 @@ export class ConnectionManager extends EventEmitter {
         robot.connection.disconnect();
         this.logger.info(`Robot ${robotName} disconnected`);
       } catch (error) {
-        this.logger.error(`Error stopping robot ${robotName}:`, error);
+        this.logger.error(`Error stopping robot ${robotName}: ${error}`);
       }
     }
   }
@@ -151,7 +151,7 @@ export class ConnectionManager extends EventEmitter {
     });
 
     connection.on('error', (error) => {
-      this.logger.error(`Robot ${robotName} error:`, error);
+      this.logger.error(`Robot ${robotName} error: ${error}`);
     });
 
     const topicBridge = new TopicBridge(

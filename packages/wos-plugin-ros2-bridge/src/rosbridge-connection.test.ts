@@ -22,7 +22,7 @@ describe('RosbridgeConnection', () => {
     // Start a mock WS server on random port
     wss = new WebSocketServer({ port: 0 });
     const addr = wss.address();
-    port = typeof addr === 'object' ? addr.port : 0;
+    port = typeof addr === 'object' && addr !== null ? addr.port : 0;
   });
 
   afterEach(() => {

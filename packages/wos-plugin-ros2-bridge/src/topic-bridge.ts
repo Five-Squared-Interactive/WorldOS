@@ -9,7 +9,7 @@
 
 import type { PluginMqttClient, PluginMessage } from '@worldos/plugin-sdk';
 import type { RosbridgeConnection } from './rosbridge-connection.js';
-import type { TopicConfig, TopicStats, RosbridgeMessage } from './types/rosbridge.js';
+import type { TopicConfig, TopicStats, RosbridgeMessage, BridgeLogger } from './types/rosbridge.js';
 
 export class TopicBridge {
   private robotName: string;
@@ -17,7 +17,7 @@ export class TopicBridge {
   private mqtt: PluginMqttClient;
   private topicConfigs: TopicConfig[];
   private isStopped: () => boolean;
-  private logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void };
+  private logger: BridgeLogger;
 
   // Stats tracking
   private rosToMqttStats = new Map<string, { count: number; lastAt: number | null }>();
@@ -35,7 +35,7 @@ export class TopicBridge {
     mqtt: PluginMqttClient,
     topicConfigs: TopicConfig[],
     isStopped: () => boolean,
-    logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void },
+    logger: BridgeLogger,
   ) {
     this.robotName = robotName;
     this.connection = connection;
@@ -143,7 +143,7 @@ export class TopicBridge {
     }
 
     this.mqtt.publishRaw(mqttTopic, payload).catch((err) => {
-      this.logger.error(`Failed to publish to MQTT ${mqttTopic}:`, err);
+      this.logger.error(`Failed to publish to MQTT ${mqttTopic}: ${err}`);
     });
   }
 

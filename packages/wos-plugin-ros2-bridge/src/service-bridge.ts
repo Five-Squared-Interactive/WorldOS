@@ -10,7 +10,7 @@
 
 import type { PluginMqttClient, PluginMessage } from '@worldos/plugin-sdk';
 import type { RosbridgeConnection } from './rosbridge-connection.js';
-import type { RosbridgeMessage } from './types/rosbridge.js';
+import type { RosbridgeMessage, BridgeLogger } from './types/rosbridge.js';
 
 interface PendingServiceCall {
   correlationId: string;
@@ -24,7 +24,7 @@ export class ServiceBridge {
   private connection: RosbridgeConnection;
   private mqtt: PluginMqttClient;
   private isStopped: () => boolean;
-  private logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void };
+  private logger: BridgeLogger;
   private serviceTimeoutMs: number;
   private configuredServices: Set<string>;
 
@@ -39,7 +39,7 @@ export class ServiceBridge {
     connection: RosbridgeConnection,
     mqtt: PluginMqttClient,
     isStopped: () => boolean,
-    logger: { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void; debug: (...args: unknown[]) => void },
+    logger: BridgeLogger,
     serviceTimeoutMs = 10000,
     configuredServices: string[] = [],
   ) {
@@ -112,7 +112,7 @@ export class ServiceBridge {
     const responseTopic = payload.responseTopic as string | undefined;
 
     if (!service || !correlationId || !responseTopic) {
-      this.logger.error('Invalid service call request: missing service, correlationId, or responseTopic', payload);
+      this.logger.error(`Invalid service call request: missing service, correlationId, or responseTopic`);
       return;
     }
 
@@ -125,7 +125,7 @@ export class ServiceBridge {
         'SERVICE_NOT_ALLOWED',
         `Service ${service} is not in the configured services list for robot ${this.robotName}`,
       ).catch((err) => {
-        this.logger.error('Failed to send rejection response:', err);
+        this.logger.error(`Failed to send rejection response: ${err}`);
       });
       return;
     }
@@ -145,7 +145,7 @@ export class ServiceBridge {
           'SERVICE_TIMEOUT',
           `ROS service call to ${pending.service} timed out after ${this.serviceTimeoutMs}ms`,
         ).catch((err) => {
-          this.logger.error('Failed to send timeout error response:', err);
+          this.logger.error(`Failed to send timeout error response: ${err}`);
         });
       }
     }, this.serviceTimeoutMs);
@@ -178,7 +178,7 @@ export class ServiceBridge {
     if (msg.result === true) {
       this.successCount++;
       this.mqtt.respond(pending.responseTopic, pending.correlationId, msg.values).catch((err) => {
-        this.logger.error('Failed to send service response:', err);
+        this.logger.error(`Failed to send service response: ${err}`);
       });
     } else {
       this.errorCount++;
@@ -188,7 +188,7 @@ export class ServiceBridge {
         'ROS_SERVICE_ERROR',
         `ROS service ${pending.service} returned error`,
       ).catch((err) => {
-        this.logger.error('Failed to send service error response:', err);
+        this.logger.error(`Failed to send service error response: ${err}`);
       });
     }
   }

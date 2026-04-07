@@ -23,7 +23,7 @@ describe('ConnectionManager', () => {
     return new Promise((resolve) => {
       const wss = new WebSocketServer({ port: 0 }, () => {
         const addr = wss.address();
-        const port = typeof addr === 'object' ? addr.port : 0;
+        const port = typeof addr === 'object' && addr !== null ? addr.port : 0;
         servers.push(wss);
         resolve({ wss, port });
       });

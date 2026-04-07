@@ -158,6 +158,13 @@ export interface RobotStatus {
 /** Connection state */
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
 
+/** Logger interface compatible with SDK Logger */
+export interface BridgeLogger {
+  info(message: string, meta?: Record<string, unknown>): void;
+  error(message: string, meta?: Record<string, unknown>): void;
+  debug(message: string, meta?: Record<string, unknown>): void;
+}
+
 /**
  * sensor_msgs/JointState message
  */
