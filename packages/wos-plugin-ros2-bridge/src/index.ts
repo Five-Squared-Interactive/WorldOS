@@ -139,6 +139,46 @@ export class ROS2BridgePlugin extends WOSPlugin {
 // Export the plugin instance
 export const plugin = new ROS2BridgePlugin();
 
+// Auto-start when spawned as a child process by wos-server
+if (process.env.WOS_PLUGIN_NAME) {
+  // Bridge WOS_MQTT_HOST/PORT to WOS_MQTT_URL for the SDK client
+  if (!process.env.WOS_MQTT_URL && process.env.WOS_MQTT_HOST) {
+    process.env.WOS_MQTT_URL = `mqtt://${process.env.WOS_MQTT_HOST}:${process.env.WOS_MQTT_PORT || '1883'}`;
+  }
+
+  const handleHealthCheck = (data: Buffer) => {
+    for (const line of data.toString().split('\n')) {
+      try {
+        const msg = JSON.parse(line.trim());
+        if (msg.type === 'health_check') {
+          plugin.checkHealth().then((health) => {
+            process.stdout.write(JSON.stringify({
+              type: 'health_response',
+              correlationId: msg.correlationId,
+              status: health?.status === 'ok' ? 'healthy' : (health?.status ?? 'healthy'),
+              timestamp: new Date().toISOString(),
+              details: health?.details,
+            }) + '\n');
+          }).catch(() => {});
+        }
+      } catch { /* not JSON */ }
+    }
+  };
+
+  plugin.start().then(() => {
+    process.stdin.on('data', handleHealthCheck);
+  }).catch((err: Error) => {
+    console.error(`[ros2-bridge] Failed to start: ${err.message}`);
+    process.exit(1);
+  });
+
+  const shutdown = () => {
+    plugin.stop().then(() => process.exit(0)).catch(() => process.exit(1));
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+}
+
 // Re-export types and modules
 export * from './types/rosbridge.js';
 export * from './rosbridge-connection.js';

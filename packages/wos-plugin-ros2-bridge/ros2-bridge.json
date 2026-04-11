@@ -1,0 +1,16 @@
+{
+  "connections": {
+    "arm-1": {
+      "url": "ws://localhost:9090",
+      "topics": [
+        { "name": "/joint_states", "type": "sensor_msgs/JointState" },
+        { "name": "/cmd_vel", "type": "geometry_msgs/Twist" }
+      ],
+      "services": []
+    }
+  },
+  "reconnect": {
+    "maxAttempts": 10,
+    "maxDelayMs": 30000
+  }
+}

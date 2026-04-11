@@ -13,5 +13,8 @@
     "build:plugins": "npm run build --workspace=@worldos/plugin-identity --workspace=@worldos/plugin-messaging --workspace=@worldos/plugin-world-manager --workspace=@worldos/plugin-asset-manager --workspace=@worldos/plugin-container-manager --workspace=@worldos/plugin-presence --if-present",
     "build:all": "npm run build",
     "demo": "wos start demo --foreground"
+  },
+  "dependencies": {
+    "@worldos/plugin-sdk": "^0.1.0"
   }
 }
