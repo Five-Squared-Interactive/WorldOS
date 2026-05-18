@@ -65,6 +65,7 @@ export class RosbridgeConnection extends EventEmitter {
     options?: { maxReconnectAttempts?: number; maxReconnectDelay?: number },
   ) {
     super();
+    this.setMaxListeners(20);
     this.robotName = robotName;
     this.config = config;
     this.maxReconnectAttempts = options?.maxReconnectAttempts ?? 10;

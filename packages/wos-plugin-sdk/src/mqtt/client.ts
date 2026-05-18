@@ -145,6 +145,8 @@ export class PluginMqttClient extends EventEmitter {
 
     this.connectPromise = new Promise<void>((resolve, reject) => {
       this.client = mqtt.connect(this._url, this._options);
+      // mqtt.js uses internal listeners alongside our handlers; raise limit to prevent warnings
+      this.client.setMaxListeners(20);
 
       const onConnect = (): void => {
         this._isConnected = true;
