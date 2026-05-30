@@ -1,0 +1,35 @@
+# WorldOS Plugin Manifest - Blender Asset Pipeline
+name: blender
+version: 0.1.0
+description: Headless Blender integration for model simplification and format conversion
+author: Five Squared Interactive
+
+runtime: python
+entrypoint: ./plugin.py
+
+mqtt:
+  subscriptions:
+    - wos/blender/simplify
+    - wos/blender/convert
+  publications:
+    - wos/blender/status
+    - wos/blender/result
+
+config:
+  schema:
+    type: object
+    properties:
+      blender_path:
+        type: string
+        description: Path to blender executable
+      default_ratio:
+        type: number
+        default: 0.5
+        description: Default decimation ratio (0.0-1.0)
+      default_format:
+        type: string
+        default: glb
+        description: Default output format (glb, gltf, obj, fbx, usd, usdc, usda)
+      output_dir:
+        type: string
+        description: Default output directory (uses model directory if not set)

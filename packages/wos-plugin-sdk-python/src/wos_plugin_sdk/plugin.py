@@ -112,7 +112,7 @@ class WOSPlugin(ABC):
         self._is_running = False
         self._context: Optional[PluginContext] = None
         self._manifest = opts.manifest or self._build_default_manifest()
-        self._config = opts.config or {}
+        self._config = opts.config or self._load_config_from_wos_yaml() or {}
         self._mqtt_options = opts.mqtt_options
 
         # Set up signal handlers
@@ -152,6 +152,26 @@ class WOSPlugin(ABC):
             runtime="python",
             entrypoint="__main__.py",
         )
+
+    def _load_config_from_wos_yaml(self) -> Optional[dict[str, Any]]:
+        """Load plugin config from wos.yaml using WOS_SERVER_DIR and WOS_PLUGIN_NAME."""
+        server_dir = os.environ.get("WOS_SERVER_DIR")
+        plugin_name = os.environ.get("WOS_PLUGIN_NAME")
+        if not server_dir or not plugin_name:
+            return None
+
+        yaml_path = os.path.join(server_dir, "wos.yaml")
+        if not os.path.isfile(yaml_path):
+            return None
+
+        try:
+            with open(yaml_path, "r") as f:
+                data = yaml.safe_load(f)
+            plugins = data.get("plugins", {})
+            plugin_entry = plugins.get(plugin_name, {})
+            return plugin_entry.get("config", {})
+        except Exception:
+            return None
 
     def _handle_signal(self, signum: int, frame: Any) -> None:
         """Handle shutdown signals."""
@@ -239,10 +259,13 @@ class WOSPlugin(ABC):
                 result = self.on_health_check()
                 correlation_id = message.payload.get("correlationId", "") if isinstance(message.payload, dict) else ""
 
-                self._context.mqtt.respond(
+                # Use publish_raw instead of respond() so that status/details
+                # appear at the top level — the server's HealthMonitor reads
+                # response.status directly, not response.data.status.
+                self._context.mqtt.publish_raw(
                     response_topic,
-                    correlation_id,
                     {
+                        "correlationId": correlation_id,
                         "status": result.status,
                         "details": result.details,
                         "error": result.error,
@@ -250,11 +273,13 @@ class WOSPlugin(ABC):
                 )
             except Exception as e:
                 correlation_id = message.payload.get("correlationId", "") if isinstance(message.payload, dict) else ""
-                self._context.mqtt.respond_error(
+                self._context.mqtt.publish_raw(
                     response_topic,
-                    correlation_id,
-                    "HEALTH_CHECK_ERROR",
-                    str(e),
+                    {
+                        "correlationId": correlation_id,
+                        "status": "unhealthy",
+                        "error": str(e),
+                    },
                 )
 
         try:

@@ -1,0 +1,26 @@
+# WorldOS Blender Pipeline Test Server
+# Start with: wos start --foreground
+# Admin panel: http://localhost:3001
+
+server:
+  name: blender-pipeline
+  logLevel: debug
+
+mqtt:
+  embedded: true
+  host: localhost
+  port: 1885
+
+admin:
+  enabled: true
+  port: 3001
+
+plugins:
+  blender:
+    enabled: true
+    source: ./
+    config:
+      blender_path: "C:\\Program Files\\Blender Foundation\\Blender 4.5\\blender.exe"
+      default_ratio: 0.5
+      default_format: glb
+      output_dir: "./output"
