@@ -1,0 +1,18 @@
+node_modules/
+**/node_modules/
+**/dist/
+**/*.db
+**/.wos.pid
+**/logs/
+**/.vite/
+.git/
+
+# Server runtime dirs (not needed in the build)
+demo/
+sample/
+ros2-test/.mosquitto/
+ros2-test/logs/
+ros2-test/plugins/
+
+# Test fixtures with their own node_modules
+tests/

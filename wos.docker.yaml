@@ -1,0 +1,25 @@
+# WorldOS Server Configuration — Docker
+#
+# Differences from the host config:
+#   - mqtt.host is 0.0.0.0 so the broker accepts connections from other
+#     containers (and from the host via the exposed port).
+
+server:
+  name: ros2-test
+  logLevel: info
+
+mqtt:
+  embedded: true
+  host: 0.0.0.0
+  port: 1883
+
+admin:
+  enabled: true
+  port: 3000
+
+plugins:
+  ros2-bridge:
+    enabled: true
+    source: ./plugins/ros2-bridge
+
+webhooks: []

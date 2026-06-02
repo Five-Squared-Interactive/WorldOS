@@ -1,0 +1,45 @@
+# ROS2 Bridge — Docker Compose
+#
+# Brings up two services on a shared network:
+#   ros2      – ROS Humble + rosbridge_server (WebSocket :9090)
+#   worldos   – WorldOS server + ros2-bridge plugin (MQTT :1883, admin :3000)
+#
+# Usage:
+#   cd ros2-test
+#   docker compose up --build          # foreground (Ctrl+C to stop)
+#   docker compose up --build -d       # detached
+#   docker compose down                # tear down
+
+services:
+  # ── ROS2 + rosbridge ──────────────────────────────────────────
+  ros2:
+    image: ros:humble-ros-base
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        apt-get update -qq &&
+        apt-get install -y -qq ros-humble-rosbridge-server > /dev/null 2>&1 &&
+        ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+      "
+    environment:
+      ROS_DOMAIN_ID: "0"
+    ports:
+      - "9090:9090"       # rosbridge WebSocket (optional — for host debugging)
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost',9090)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 30          # rosbridge takes a while on first boot (apt install)
+      start_period: 120s
+
+  # ── WorldOS server ────────────────────────────────────────────
+  worldos:
+    build:
+      context: ..          # WorldOS workspace root
+      dockerfile: ros2-test/Dockerfile
+    ports:
+      - "1883:1883"       # MQTT broker
+      - "3000:3000"       # Admin panel
+    depends_on:
+      ros2:
+        condition: service_healthy
